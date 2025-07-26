@@ -1,28 +1,69 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { UserSetup } from './components/UserSetup';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { MessagesProvider } from './contexts/MessagesContext';
+import { AuthForm } from './components/AuthForm';
 import { ChatRoom } from './components/ChatRoom';
 import { User } from './types/chat';
 
-function App() {
-  const [user, setUser] = useState<User | null>(null);
+function AppContent() {
+  const { user: authUser, loading } = useAuth();
+  const [chatUser, setChatUser] = useState<User | null>(null);
 
-  const handleUserSetup = (name: string) => {
-    setUser({
-      name,
-      avatar: name[0].toUpperCase()
-    });
+  // Convert Supabase user to chat user format
+  React.useEffect(() => {
+    if (authUser) {
+      const displayName = authUser.user_metadata?.display_name || 
+                         authUser.email?.split('@')[0] || 
+                         'Anonymous User';
+      
+      setChatUser({
+        id: authUser.id,
+        name: displayName,
+        avatar: authUser.user_metadata.avatar_url || displayName[0].toUpperCase(),
+        is_anonymous: authUser.is_anonymous
+      });
+    } else {
+      setChatUser(null);
+    }
+  }, [authUser]);
+
+  const handleUserChange = (name: string) => {
+    if (chatUser) {
+      setChatUser({
+        ...chatUser,
+        name,
+      });
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authUser || !chatUser) {
+    return <AuthForm />;
+  }
+
+  return (
+    <MessagesProvider>
+      <ChatRoom user={chatUser} onUserChange={handleUserChange} />
+    </MessagesProvider>
+  );
+}
+
+function App() {
   return (
     <ThemeProvider>
-      <div className="App">
-        {!user ? (
-          <UserSetup onUserSetup={handleUserSetup} />
-        ) : (
-          <ChatRoom user={user} />
-        )}
-      </div>
+      <AuthProvider>
+        <div className="App">
+          <AppContent />
+        </div>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

@@ -1,0 +1,42 @@
+name: Daily Quote Generator
+
+on:
+  schedule:
+    # Run at 12 AM PST every day (cron format: minute hour day month weekday)
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  generate-daily-quote:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Generate Daily Quote
+        run: |
+          response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://uymjqotrklxekiodfepb.supabase.co/functions/v1/daily-quote)
+          
+          # Extract HTTP status code
+          http_status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          response_body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+          
+          echo "HTTP Status: $http_status"
+          echo "Response: $response_body"
+          
+          # Check if request was successful
+          if [ "$http_status" -eq 200 ]; then
+            echo "Daily quote generated successfully!"
+          else
+            echo "Failed to generate daily quote"
+            exit 1
+          fi
+        
+      - name: Log Completion
+        if: success()
+        run: echo "Daily quote generation completed at $(date -u)"
+        
+      - name: Log Failure
+        if: failure()
+        run: echo "Daily quote generation failed at $(date -u)"

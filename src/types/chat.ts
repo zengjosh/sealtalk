@@ -7,6 +7,8 @@ export interface Message {
 }
 
 export interface User {
+  id?: string;
   name: string;
   avatar: string;
+  is_anonymous?: boolean;
 }
