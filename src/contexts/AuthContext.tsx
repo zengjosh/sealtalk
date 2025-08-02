@@ -145,10 +145,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const signInWithGoogle = async () => {
+    // Use production URL in production, localhost in development
+    const redirectUrl = import.meta.env.PROD 
+      ? 'https://sealtalk.app/' // Replace with your actual production domain
+      : window.location.origin;
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: redirectUrl
       }
     });
     if (error) throw error;
