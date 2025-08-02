@@ -7,7 +7,7 @@ import { ChatRoom } from './components/ChatRoom';
 import { User } from './types/chat';
 
 function AppContent() {
-  const { user: authUser, loading } = useAuth();
+  const { user: authUser, loading, updateDisplayName } = useAuth();
   const [chatUser, setChatUser] = useState<User | null>(null);
 
   // Convert Supabase user to chat user format
@@ -21,19 +21,25 @@ function AppContent() {
         id: authUser.id,
         name: displayName,
         avatar: authUser.user_metadata.avatar_url || displayName[0].toUpperCase(),
-        is_anonymous: authUser.is_anonymous
+        is_anonymous: authUser.is_anonymous || authUser.user_metadata?.is_anonymous
       });
     } else {
       setChatUser(null);
     }
   }, [authUser]);
 
-  const handleUserChange = (name: string) => {
-    if (chatUser) {
-      setChatUser({
-        ...chatUser,
-        name,
-      });
+  const handleUserChange = async (name: string) => {
+    if (chatUser && !chatUser.is_anonymous) {
+      try {
+        await updateDisplayName(name);
+        setChatUser({
+          ...chatUser,
+          name,
+        });
+      } catch (error) {
+        console.error('Failed to update display name:', error);
+        // Optionally show an error message to the user
+      }
     }
   };
 

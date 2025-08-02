@@ -191,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           captchaToken: turnstileToken, // Pass the token here for Supabase's built-in verification
           data: {
-            display_name: `Anonymous User ${randomId.substring(0, 4)}`,
+            display_name: 'Anonymous Seal',
             avatar_url: getRandomAvatar(),
             is_anonymous: true
           }
@@ -223,6 +223,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateDisplayName = async (displayName: string) => {
+    // Prevent anonymous users from updating their display name
+    if (user?.is_anonymous) {
+      throw new Error('Anonymous users cannot change their display name');
+    }
+    
     const { error } = await supabase.auth.updateUser({
       data: { display_name: displayName }
     });
