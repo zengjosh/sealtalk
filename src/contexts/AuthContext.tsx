@@ -20,7 +20,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
   signUpWithEmail: (email: string, password: string, displayName: string) => Promise<{ error?: any }>;
-  signInAnonymously: () => Promise<void>;
+  signInAnonymously: (turnstileToken: string) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
 }
@@ -176,16 +176,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const signInAnonymously = async () => {
-    const { error } = await supabase.auth.signInAnonymously({
-      options: {
-        data: {
-          display_name: 'Anonymous Seal',
-          avatar_url: getRandomAvatar(),
-        },
-      },
-    });
-    if (error) throw error;
+  const signInAnonymously = async (turnstileToken: string) => {
+    try {
+      setLoading(true);
+      
+      // Create a random email and password for anonymous user
+      const randomId = Math.random().toString(36).substring(2, 15);
+      const email = `anon-${randomId}@sealtalk.app`;
+      const password = Math.random().toString(36) + Math.random().toString(36);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          captchaToken: turnstileToken, // Pass the token here for Supabase's built-in verification
+          data: {
+            display_name: `Anonymous User ${randomId.substring(0, 4)}`,
+            avatar_url: getRandomAvatar(),
+            is_anonymous: true
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      // Sign in with the created account
+      if (data.user) {
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Error in anonymous sign in:', error);
+      return { error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {

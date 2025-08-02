@@ -7,8 +7,7 @@ const supabase = createClient(
 );
 
 Deno.serve(async () => {
-  // const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // Original 24-hour cutoff
-  const cutoff = new Date(Date.now() - 1000).toISOString(); // Test: 1-second cutoff
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(); // Original 24-hour cutoff
 
   const { error } = await supabase
     .from('messages')

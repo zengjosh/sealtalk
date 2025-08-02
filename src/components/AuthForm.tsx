@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Mail, Lock, User, Chrome, UserX } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { Turnstile } from './Turnstile';
 
 export function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -9,8 +10,23 @@ export function AuthForm() {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileKey, setTurnstileKey] = useState(0); // Used to reset the Turnstile widget
 
   const { signInWithGoogle, signInWithEmail, signUpWithEmail, signInAnonymously } = useAuth();
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setTurnstileToken(null);
+  }, []);
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken(null);
+    setError('Failed to verify you\'re human. Please try again.');
+  }, []);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +60,22 @@ export function AuthForm() {
   };
 
   const handleAnonymousSignIn = async () => {
+    if (!turnstileToken) {
+      setError('Please verify you\'re human to continue');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
-      await signInAnonymously();
+      await signInAnonymously(turnstileToken);
+      // Reset Turnstile after successful verification
+      setTurnstileToken(null);
+      setTurnstileKey(prev => prev + 1);
     } catch (err: any) {
       setError(err.message || 'Anonymous sign-in failed');
+      setTurnstileToken(null);
+      setTurnstileKey(prev => prev + 1); // Reset Turnstile on error
       setLoading(false);
     }
   };
@@ -79,8 +105,8 @@ export function AuthForm() {
         <div className="space-y-3 mb-6">
           <button
             onClick={handleAnonymousSignIn}
-            disabled={loading}
-            className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 disabled:opacity-50"
+            disabled={loading || !turnstileToken}
+            className="w-full flex items-center justify-center space-x-3 px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UserX className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             <span className="text-gray-700 dark:text-gray-300">Continue as Guest</span>
@@ -182,6 +208,18 @@ export function AuthForm() {
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
+        </div>
+
+        {/* Turnstile Widget */}
+        <div className="mt-6 flex justify-center">
+          <Turnstile
+            key={turnstileKey}
+            siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+            onVerify={handleTurnstileVerify}
+            onExpire={handleTurnstileExpire}
+            onError={handleTurnstileError}
+            className="w-full flex justify-center"
+          />
         </div>
       </div>
     </div>
