@@ -126,29 +126,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Reset timer on user activity
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    
-    const resetTimer = () => {
-      if (user?.is_anonymous) {
-        startInactivityTimer();
-      }
-    };
 
     events.forEach(event => {
-      document.addEventListener(event, resetTimer, true);
+      document.addEventListener(event, resetInactivityTimer, true);
     });
 
     return () => {
       events.forEach(event => {
-        document.removeEventListener(event, resetTimer, true);
+        document.removeEventListener(event, resetInactivityTimer, true);
       });
     };
-  }, [user]);
+  }, [user, resetInactivityTimer]);
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo: `${window.location.origin}/chat`
       }
     });
     if (error) throw error;
