@@ -1,9 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { Mail, Lock, User, Chrome, UserX } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, User, Chrome, UserX, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Turnstile } from './Turnstile';
 
 export function AuthForm() {
+  const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -201,13 +203,23 @@ export function AuthForm() {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-3">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors duration-200"
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
+          
+          <div>
+            <button
+              onClick={() => navigate('/privacy')}
+              className="flex items-center justify-center space-x-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-sm transition-colors duration-200 mx-auto"
+            >
+              <Shield className="w-4 h-4" />
+              <span>Privacy Policy</span>
+            </button>
+          </div>
         </div>
 
         {/* Turnstile Widget */}
