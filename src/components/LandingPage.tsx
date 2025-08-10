@@ -1,7 +1,5 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useEffect } from 'react';
 import { 
   MessageCircle, 
   Shield, 
@@ -15,14 +13,6 @@ import DecryptedText from './DecryptedText';
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      navigate('/chat');
-    }
-  }, [user, navigate]);
-
   const { scrollY } = useScroll();
 
   // Parallax transforms
