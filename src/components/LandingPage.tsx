@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   MessageCircle, 
@@ -13,15 +13,11 @@ import DecryptedText from './DecryptedText';
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { scrollY } = useScroll();
-
-  // Parallax transforms
-  const featuresY = useTransform(scrollY, [200, 800], [0, -100]);
 
   return (
-    <div className="h-screen bg-[#111827] text-white overflow-y-scroll snap-y snap-mandatory">
+    <div className="bg-[#111827] text-white overflow-y-auto">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center bg-[#111827] overflow-hidden z-10 snap-start">
+      <section className="relative h-screen flex items-center justify-center bg-[#111827] overflow-hidden z-10">
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -111,8 +107,7 @@ export function LandingPage() {
       {/* Features Section */}
       <motion.section 
         id="features"
-        style={{ y: featuresY }}
-        className="h-screen flex justify-center py-24 bg-[#111827] z-10 relative snap-start pt-32"
+        className="min-h-screen flex justify-center py-24 bg-[#111827] z-10 relative pt-32"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -158,7 +153,7 @@ export function LandingPage() {
       </motion.section>
 
       {/* How It Works Section */}
-            <section id="how-it-works" className="h-screen flex flex-col items-center justify-center py-24 bg-[#111827] z-10 relative snap-start">
+            <section id="how-it-works" className="min-h-screen flex flex-col items-center justify-center py-24 bg-[#111827] z-10 relative">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white">How It Works</h2>
@@ -216,7 +211,7 @@ export function LandingPage() {
       </section>
 
       {/* Final CTA Section */}
-            <section id="cta" className="h-screen flex flex-col justify-center py-20 bg-[#111827] text-center z-10 relative snap-start">
+            <section id="cta" className="min-h-screen flex flex-col justify-center py-20 bg-[#111827] text-center z-10 relative">
         <div className="max-w-4xl mx-auto text-center flex-grow flex flex-col justify-center">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
